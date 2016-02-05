@@ -59,13 +59,11 @@ component {
 				js = 'application/javascript'
 			};
 			
-			
 			// cache-control header
 			variables.sCacheControl = arguments.cacheControl;
 			// return 304s when conditional requests are made with matching Etags?
 			variables.bEnable304s = arguments.enable304s;
 			
-					
 			variables.jOutputStream = createObject("java","java.io.ByteArrayOutputStream");
 			variables.jStringReader = createObject("java","java.io.StringReader");
 			
@@ -129,7 +127,6 @@ component {
 				// determine what file type we are dealing with
 				sType = listLast( listFirst(filePaths, sDelimiter) , '.');
 				
-				
 				// security check 
 				if(!listfindnocase('js,css',sType)){
 					cfheader(statuscode="400",  statustext="Bad Request");
@@ -144,9 +141,13 @@ component {
 						lastModified = max(lastModified, getFileDateLastModified( sFilePath ));
 						sCorrectedFilePaths = listAppend(sCorrectedFilePaths, sFilePath, sDelimiter);
 					}else if(!variables.bSkipMissingFiles){	
-						throw(type="combine.missingFileException", message="A file specified in the combine (#sType#) path doesn't exist.", detail="file: #sFilePath#", extendedinfo="full combine path list: #filePaths#");
+						throw(
+							type="combine.missingFileException", 
+							message="A file specified in the combine (#sType#) path doesn't exist.", 
+							detail="file: #sFilePath#", 
+							extendedinfo="full combine path list: #filePaths#"
+						);
 					}
-
 				}
 				
 				filePaths = sCorrectedFilePaths;
@@ -154,15 +155,12 @@ component {
 				// create a string to be used as an Etag - in the response header 
 				etag = lastModified & '-' & hash(filePaths);
 				
-				
 				// output the etag, this allows the browser to make conditional requests
 				// (i.e. browser says to server: only return me the file if your eTag is different to mine)
 				
 				if(variables.bEtags){
 					 cfheader(name="ETag", value="""#etag#""");
 				}
-					
-				
 				
 				// obtain the HTTP_IF_NONE_MATCH request header - strange behavior using structKeyExists() on Railo 3.1 
 				try{
@@ -170,9 +168,6 @@ component {
 				}catch(any e){
 					writedump(e);
 				}
-					
-				
-				
 				 
 				// if the browser is doing a conditional request, then only send it the file if the browser's
 				// etag doesn't match the server's etag (i.e. the browser's file is different to the server's)
@@ -180,12 +175,21 @@ component {
 				if(sHttpNoneMatch contains eTag && variables.bEtags && variables.bEnable304s){
 					//  nothing has changed, return nothing 
 					// getPageContext().getFusionContext().getResponse().setHeader('Content-Type','#variables.stContentTypes[sType]#');
-					cfheader(name="Content-Type", value="#variables.stContentTypes[sType]#");
-					cfheader(statuscode="304", statustext="Not Modified");
+					cfheader(
+						name="Content-Type", 
+						value="#variables.stContentTypes[sType]#"
+					);
+					cfheader(
+						statuscode="304", 
+						statustext="Not Modified"
+					);
 					
 					//specific Cache-Control header? 
 					if(len(variables.sCacheControl)){
-						 cfheader(name="Cache-Control",value="#variables.sCacheControl#");
+						 cfheader(
+						 	name="Cache-Control",
+						 	value="#variables.sCacheControl#"
+						 );
 					}
 				
 					return;
@@ -199,7 +203,7 @@ component {
 						if(fileExists(sCacheFile)){
 							sOutput = fileRead(sCacheFile);
 							
-							// output contents --->
+							// output contents 
 							outputContent(sOutput, sType, variables.sCacheControl);	
 							return;
 						}
@@ -209,8 +213,9 @@ component {
 					// combine the file contents into 1 string 
 					sOutput = '';
 					for(var file in filePaths){
+						// get file contents
 						sFileContent = fileRead(file);
-						
+						// get the output
 						sOutput = sOutput & variables.sOutputDelimiter & sFileContent;
 					}
 					
@@ -229,7 +234,6 @@ component {
 					// write the cache file 
 					if(variables.bCache){
 						fileWrite(sCacheFile,soutput);
-						
 					}
 					
 				}
@@ -248,11 +252,17 @@ component {
 				string sCacheControl=''
 			){
 				// content-type (e.g. text/css) 
-				cfheader(name="Content-Type", value="#variables.stContentTypes[sType]#");
+				cfheader(
+					name="Content-Type", 
+					value="#variables.stContentTypes[sType]#"
+				);
 
 				// specific Cache-Control header? 
 				if(len(arguments.sCacheControl)){
-					 cfheader(name="Cache-Control", value="#arguments.sCacheControl#");
+					 cfheader(
+					 	name="Cache-Control", 
+					 	value="#arguments.sCacheControl#"
+					 );
 				}
 				
 				writeoutput(arguments.sOut);
